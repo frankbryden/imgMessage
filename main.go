@@ -43,7 +43,7 @@ func convertImage(img image.Image) *image.RGBA {
 }
 
 func decodeImage(img *image.RGBA) {
-
+	//WHAT REALLY NEEDS TO BE DONE: write a function which simply reads n number of bits from the image and returns them as a string
 	//Create a string of 0's and 1's that has the length of the message
 	messageLength := ""
 	x, y := 0, 0

@@ -26,11 +26,13 @@ func getBytes(ints []int) string {
 	return strReprBinaryVals
 }
 
+//Flip parity
 func toggleOddEven(v *uint32) {
 	if *v == 255 {
 		*v--
+	} else {
+		*v++
 	}
-	*v++
 }
 
 func convertImage(img image.Image) *image.RGBA {
@@ -40,23 +42,28 @@ func convertImage(img image.Image) *image.RGBA {
 	return i
 }
 
+//Takes image and message to write into image
 func processImage(img *image.RGBA, strBs string) {
 	bounds := img.Bounds()
 
+	//i = current index in the message
 	x, y, i := 0, 0, 0
 
 	for i < len(strBs) {
+		//Get the RGB values at (x,y)
 		r, g, b, _ := img.At(x, y).RGBA()
+		//Make the pixel values between 0 and 255
 		r = r >> 8
 		g = g >> 8
 		b = b >> 8
 		cols := []uint32{r, g, b}
 		//we need to go through each channel: check if it corresponds with current bit
 		//0 = even, 1 = odd
-		fmt.Println("before", cols)
 		for j, c := range cols {
+			//Convert character to string, then to an integer (0 or 1)
 			curVal, _ := strconv.Atoi(string(strBs[i]))
 			fmt.Println("curVal", curVal)
+			//Check parity of channel against parity of current bit in message
 			if int(c%2) != curVal {
 				toggleOddEven(&c)
 				cols[j] = c
@@ -67,17 +74,13 @@ func processImage(img *image.RGBA, strBs string) {
 				break
 			}
 		}
+		img.Set(x, y, color.RGBA{uint8(cols[0]), uint8(cols[1]), uint8(cols[2]), 0})
 		x++
 		if x == bounds.Max.X {
 			x = 0
 			y++
 		}
-		fmt.Println("after", cols)
-		img.Set(x, y, color.RGBA{uint8(cols[0]), uint8(cols[1]), uint8(cols[2]), 0})
-		//break
 	}
-
-	fmt.Println("w", bounds.Max.X, "h", bounds.Max.Y)
 }
 
 func main() {
@@ -93,6 +96,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	//Read the image
 	img, err := jpeg.Decode(reader)
 
 	if err != nil {
@@ -100,12 +104,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	//Get the ASCII value for each character in the message
 	ints := getInts(message)
 
 	//This is a list of string, where each string is a binary representation of each character in the message
+	//Convert each ASCII value into binary
+	//Concatenate everything into one whole string
 	strBs := getBytes(ints)
 
-	//Convert image.Image to image.RGBA
+	//Convert image.Image (read-only) to image.RGBA (editable format)
 	rgba := convertImage(img)
 
 	//Process img with bytes
@@ -114,5 +121,5 @@ func main() {
 	//
 	f, _ := os.Create("out.jpg")
 	e := jpeg.Encode(f, rgba, nil)
-	
+
 }

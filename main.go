@@ -42,6 +42,53 @@ func convertImage(img image.Image) *image.RGBA {
 	return i
 }
 
+func decodeImage(img *image.RGBA) {
+
+	//Create a string of 0's and 1's that has the length of the message
+	messageLength := ""
+	x, y := 0, 0
+	bounds := img.Bounds()
+
+	//Get the values at the first 12 channels (4 pixels)
+	for x < 4 {
+		r, g, b, _ := img.At(x, y).RGBA()
+		r = r >> 8
+		g = g >> 8
+		b = b >> 8
+		messageLength += string(r%2) + string(g%2) + string(b%2)
+		x++
+	}
+
+	//Parse the message length string to an integer
+	length, _ := strconv.ParseInt(messageLength, 2, 32)
+
+	bitMessage := ""
+	bitCounter := 0
+
+	for bitCounter < int(length) {
+		r, g, b, _ := img.At(x, y).RGBA()
+		r = r >> 8
+		g = g >> 8
+		b = b >> 8
+		cols := []uint32{r, g, b}
+		//we need to go through each channel: check if it corresponds with current bit
+		//0 = even, 1 = odd
+		for _, c := range cols {
+			bitMessage += string(c % 2)
+			bitCounter++
+			if bitCounter >= len(messageLength) {
+				break
+			}
+		}
+		x++
+		if x >= bounds.Max.X {
+			x = 0
+			y++
+		}
+	}
+
+}
+
 //Takes image and message to write into image
 func processImage(img *image.RGBA, strBs string) {
 	bounds := img.Bounds()

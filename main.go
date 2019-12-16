@@ -86,8 +86,13 @@ func processImage(img *image.RGBA, strBs string) {
 func main() {
 	fmt.Println("hey")
 	fileName := os.Args[1]
-	message := os.Args[2]
-	fmt.Println("Writing message", message, "to", fileName)
+	message := ""
+	encode := false
+	if len(os.Args) > 2 {
+		encode = true
+		message = os.Args[2]
+		fmt.Println("Writing message", message, "to", fileName)
+	}
 
 	reader, err := os.Open(fileName)
 
@@ -103,6 +108,8 @@ func main() {
 		fmt.Println("failed to read file", err)
 		os.Exit(1)
 	}
+
+	//Here, we do 2 different things, based on the value of encode: call Frankie's code if false, and Jasmine's code if true
 
 	//Get the ASCII value for each character in the message
 	ints := getInts(message)
@@ -121,5 +128,5 @@ func main() {
 	//
 	f, _ := os.Create("out.jpg")
 	e := jpeg.Encode(f, rgba, nil)
-
+	fmt.Println("Success", e)
 }
